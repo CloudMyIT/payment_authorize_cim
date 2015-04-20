@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+  <data noupdate="1">
+    
+     <template id="checkout_page_template" name="Billig Shipping Collection">
+          
+  <t t-call="website.layout">
+    <t t-set="additional_title">Shop - Checkout</t>
+    <div id="wrap">
+      <div class="container oe_website_sale">
+          <ul class="wizard pull-right">
+              <li><a href="/shop/cart" class="text-success">Review Order<span class="chevron"></span></a></li>
+              <li class="text-primary">Shipping &amp; Billing<span class="chevron"></span></li>
+              <li class="text-muted">Payment<span class="chevron"></span></li>
+              <li class="text-muted">Confirmation<span class="chevron"></span></li>
+          </ul>
+          
+          <div class="row">
+          <div class="col-md-8">
+          <h1>Your Address</h1>
+          
+          <t t-if="message != ''">
+            <div class="alert alert-danger" role="alert">
+              <span class="pull-right" onclick="$(this).parent().remove()" style="cursor: pointer"><i class="fa fa-times"></i></span>
+                <t t-raw="message"/>
+            </div>
+          </t>
+          
+          <form action="/shop/confirm_order" method="post" id="shipping_billing_addr_submit">
+
+            <div class="row">
+              
+              <div class="col-md-12">
+                
+                <h3>Billing Information <a type="button" href="#add_address_info" class="btn btn-primary pull-right" onclick="$('#add_address_info').show(); clear_from(); $('#address_type').val('billing');">Add new Billing Address</a></h3>
+                
+                <t t-foreach="addresses_billing" t-as="billing">
+                  <div class="row">
+                    <div class="col-md-12">
+
+                      <t t-if="billing.is_default == '1' and (request.session['billing'] == '0' or int(request.session['billing']) == int(billing.id))">
+                      <span style="float: right;">Default(will be used for this order)</span>
+                      </t>
+                      <t t-if="billing.is_default == '1' and request.session['billing'] != '0' and int(request.session['billing']) != int(billing.id)">
+                      <span style="float: right;">Default(<a t-att-data-id="billing.id" data-type="billing" onclick="use_order(this); return false;" href="#">Use for this order</a>)</span>
+                      </t>
+                      
+                      
+                      <t t-if="billing.is_default != '1' and int(request.session['billing']) != int(billing.id)">
+                      <a style="float: right;" t-att-data-id="billing.id" data-type="billing" onclick="use_order(this); return false;" href="#">Use for this order</a>
+                      </t>
+                      <t t-if="billing.is_default != '1' and int(request.session['billing']) == int(billing.id)">
+                      <span style="float: right;">(will be used for this order)</span>
+                      </t>
+
+                      <span><t t-esc="billing.address1"/></span>
+                      <span><t t-esc="billing.address2"/></span><br/>
+                      <span><t t-esc="billing.address_city"/>, <t t-esc="billing.address_state"/>, <t t-esc="billing.address_country.name"/>, <t t-esc="billing.address_zip"/></span><br/><br/>
+
+                      <a href="#add_address_info" t-att-data-id="billing.id" onclick="get_address(this); $('#add_address_info').show();">Edit</a> | <a href="" t-att-data-id="billing.id" onclick="delete_address(this); return false;">Delete</a> 
+                      <t t-if="billing.is_default != '1'"> | <a t-att-data-id="billing.id" data-type="billing" href="" onclick="make_default(this); return false;">Make Default</a></t>
+                    </div>
+                  </div>
+                </t>
+                
+                <t t-if="not len(addresses_billing)">
+                  <div class="alert alert-info" role="alert">No billing address found.</div>
+                </t>
+                
+              </div>
+            </div>
+            
+            <div class="row">
+              
+              <div class="col-md-12">
+                
+                <h3>Shipping Information <a type="button" href="#add_address_info" class="btn btn-primary pull-right" onclick="$('#add_address_info').show(); clear_from(); $('#address_type').val('shipping');">Add new Shipping Address</a></h3>
+                
+                <t t-foreach="addresses_shipping" t-as="shipping">
+                  <div class="row">
+                    <div class="col-md-12">
+
+                      <t t-if="shipping.is_default == '1' and (request.session['shipping'] == '0' or int(request.session['shipping']) == int(shipping.id))">
+                      <span style="float: right;">Default(will be used for this order)</span>
+                      </t>
+                      <t t-if="shipping.is_default == '1' and request.session['shipping'] != '0' and int(request.session['shipping']) != int(shipping.id)">
+                      <span style="float: right;">Default(<a t-att-data-id="shipping.id" data-type="shipping" onclick="use_order(this); return false;" href="#">Use for this order</a>)</span>
+                      </t>
+                      
+                      
+                      <t t-if="shipping.is_default != '1' and int(request.session['shipping']) != int(shipping.id)">
+                      <a style="float: right;" t-att-data-id="shipping.id" data-type="shipping" onclick="use_order(this); return false;" href="#">Use for this order</a>
+                      </t>
+                      <t t-if="shipping.is_default != '1' and int(request.session['shipping']) == int(shipping.id)">
+                      <span style="float: right;">(will be used for this order)</span>
+                      </t>
+
+                      <span><t t-esc="shipping.address1"/></span>
+                      <span><t t-esc="shipping.address2"/></span><br/>
+                      <span><t t-esc="shipping.address_city"/>, <t t-esc="shipping.address_state"/>, <t t-esc="shipping.address_country.name"/>, <t t-esc="shipping.address_zip"/></span><br/><br/>
+
+                      <a href="#add_address_info" t-att-data-id="shipping.id" onclick="get_address(this); $('#add_address_info').show();">Edit</a> | <a href="" t-att-data-id="shipping.id" onclick="delete_address(this); return false;">Delete</a>
+                      <t t-if="shipping.is_default != '1'"> | <a t-att-data-id="shipping.id" data-type="shipping" href="" onclick="make_default(this); return false;">Make Default</a></t>
+                    </div>
+                  </div>
+                </t>
+                
+                <t t-if="not len(addresses_shipping)">
+                  <div class="alert alert-info" role="alert">No shipping address found.</div>
+                </t>
+                
+              </div>
+            </div>
+            
+            <div class="row" style="display: none" id="add_address_info">
+              
+              <div class="col-md-12">
+                
+                <h2>Add Information</h2>
+                
+                <div class="row">
+                  <div class="col-md-6 form-group">
+                    <input type="text" value="" placeholder="Address1" class="form-control" name="address1"/>
+                  </div>
+                  <div class="col-md-6 form-group">
+                    <input type="text" value="" placeholder="Address2" class="form-control" name="address2"/>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 form-group">
+                    <select class="form-control" name="country">
+                      <option value="">Country..</option>
+                      <t t-foreach="countries or []" t-as="country">
+                        <option t-att-value="country.id"><t t-esc="country.name"/></option>
+                      </t>
+                    </select>
+                  </div>
+                  <div class="col-md-6 form-group">
+                    <input type="text" value="" placeholder="State" class="form-control" name="state"/>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 form-group">
+                    <input type="text" value="" placeholder="City" class="form-control" name="city"/>
+                  </div>
+                  <div class="col-md-6 form-group">
+                    <input type="text" value="" placeholder="Zipcode" class="form-control"  name="zipcode"/>
+                  </div>
+                </div>
+                
+                
+                <div class="row">
+                  <div class="col-md-12">
+                    <input type="hidden" value="" name="address_type" id="address_type"/>
+                    <input type="hidden" value="" name="address_id"/>
+                    <button type="button" class="btn btn-primary" onclick="submit_address()">Save</button> 
+                    <button type="button" class="btn btn-primary" onclick="$('#add_address_info').hide();">Cancel</button>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+            
+            <div class="clearfix" style="margin-top: 40px;">
+              <a href="/shop/cart" class="btn btn-default mb32"><span class="fa fa-long-arrow-left"/> Return to Cart</a>
+              <a class="btn btn-default btn-primary pull-right mb32 a-submit">Confirm <span class="fa fa-long-arrow-right"/></a>
+            </div>
+            
+            <script>
+              function submit_address() {
+              
+                $.ajax({
+                  'url': '/shop/address/submit',
+                  'type': 'POST',
+                  'data': $('#shipping_billing_addr_submit').serialize(),
+                  'success': function(data) {
+                    
+                    data = $.parseJSON(data);
+                    //location.reload();
+                    $('.error').remove();
+              
+                    if(!data.success)
+                      $.each(data, function(key, val) {
+
+                        $('[name="'+ key +'"]').after('<span class="error" style="color: red;">'+ val +'</span>');
+                      });
+                    else
+                      location.reload();
+                  }
+                });
+              }
+              
+              function make_default(obj) {
+              
+                $.ajax({
+                  'url': '/shop/address/setdefault',
+                  'type': 'POST',
+                  'data': 'address_id='+$(obj).attr('data-id')+'&amp;type='+$(obj).attr('data-type'),
+                  'success': function(data) {
+                    //console.log(data);
+                    location.reload();
+                  }
+                });
+              }
+              
+              function get_address(obj) {
+              
+                $.ajax({
+                  'url': '/shop/address/',
+                  'type': 'POST',
+                  'data': 'address_id='+$(obj).attr('data-id'),
+                  'success': function(data) {
+                    data = $.parseJSON(data);
+                    $('input[name="address1"]').val(data.address1);
+                    $('input[name="address2"]').val(data.address2);
+                    $('select[name="country"]').val(data.address_country);
+                    $('input[name="state"]').val(data.address_state);
+                    $('input[name="city"]').val(data.address_city);
+                    $('input[name="zipcode"]').val(data.address_zip);
+                    $('input[name="address_id"]').val($(obj).attr('data-id'));
+                    //location.reload();
+                  }
+                });
+              }
+              
+              function delete_address(obj) {
+              
+                $.ajax({
+                  'url': '/shop/address/delete',
+                  'type': 'POST',
+                  'data': 'address_id='+$(obj).attr('data-id'),
+                  'success': function(data) {
+                    //console.log(data);
+                    location.reload();
+                  }
+                });
+              }
+              
+              function clear_from() {
+                
+                $('#add_address_info').find('input, select').val('');
+              }
+              
+              function use_order(obj) {
+                  
+                  $.ajax({
+                  'url': '/shop/address/session',
+                  'type': 'POST',
+                  'data': 'address_id='+$(obj).attr('data-id')+'&amp;address_type='+$(obj).attr('data-type'),
+                    'success': function(data) {
+                      //console.log(data);
+                      location.reload();
+                    }
+                  });
+              }
+            </script>
+            
+            <input type="hidden" name="shipping_id" value="0"/>
+          </form>
+          </div>
+          
+          <div class="col-lg-offset-1 col-lg-3 col-md-3 text-muted">
+              <h3 class="page-header mt16">Your Order <small><a href="/shop/cart"><span class="fa fa-arrow-right"/> change</a></small></h3>
+              <t t-set="website_sale_order" t-value="website.sale_get_order()"/>
+              <div class="row">
+                  <div class="col-sm-6 text-right">Subtotal: </div>
+                  <div class="col-sm-6"><span style="white-space: nowrap;" t-field="website_sale_order.amount_untaxed" t-field-options='{
+                      "widget": "monetary",
+                      "display_currency": "user_id.partner_id.property_product_pricelist.currency_id"
+                  }'/></div>
+                  <div class="col-sm-6 text-right">Taxes: </div>
+                  <div class="col-sm-6"><span style="white-space: nowrap;" t-field="website_sale_order.amount_tax" t-field-options='{
+                      "widget": "monetary",
+                      "display_currency": "user_id.partner_id.property_product_pricelist.currency_id"
+                  }'/></div>
+                  <div class="col-sm-6 text-right"><h4>Total To Pay: </h4></div>
+                  <div class="col-sm-6"><h4><span style="white-space: nowrap;" t-field="website_sale_order.amount_total" t-field-options='{
+                      "widget": "monetary",
+                      "display_currency": "user_id.partner_id.property_product_pricelist.currency_id"
+                  }'/></h4></div>
+              </div>
+          </div>
+          
+          </div>
+    </div>
+    </div>
+  </t>
+</template>
+    
+  </data>
+</openerp>

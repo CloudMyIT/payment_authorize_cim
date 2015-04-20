@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+
+        <record id="payment_acquirer_authorize_cim" model="payment.acquirer">
+            <field name="name">Authorize.Net CIM</field>
+            <field name="provider">authorize_cim</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="view_template_id" ref="authorize_cim_acquirer_button"/>
+            <field name="environment">test</field>
+            <field name="pre_msg"><![CDATA[
+<p></p>]]></field>
+            <field name='authorize_login'>xxxx</field>
+            <field name="authorize_transaction_key">xxxx</field>
+        </record>
+
+    </data>
+</openerp>

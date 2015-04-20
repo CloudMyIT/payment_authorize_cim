@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+  <data noupdate="1">
+    
+    <template id="authorize_payment_template" inherit_id="website_sale.payment">
+      
+      <xpath expr="//div[@class='col-lg-3 col-sm-3']" position='attributes'>
+        <attribute name="class">col-md-12</attribute>
+      </xpath>
+      <xpath expr="//div[@class='col-lg-5 col-sm-6']" position='attributes'>
+        <attribute name="class">col-md-12</attribute>
+      </xpath>
+      <xpath expr="//div[@class='oe_sale_acquirer_button hidden pull-right']" position='attributes'>
+        <attribute name="class">oe_sale_acquirer_button hidden</attribute>
+      </xpath>
+      
+      
+      <xpath expr="//div[@class='col-lg-3 col-lg-offset-1 col-sm-3 text-muted']" position='replace'>
+        <div class="col-lg-3 col-lg-offset-1 col-sm-3 text-muted" id="right_column">
+              <t t-set="billing_addr" t-value="checkout_address.check_address('billing', request)"/>
+              <t t-set="shipping_addr" t-value="checkout_address.check_address('shipping', request)"/>
+              <t>
+                <h4>Bill To:</h4>
+                <div>
+                  <i class="fa fa-map-marker"></i> <t t-esc="billing_addr.address1"/>, <t t-esc="billing_addr.address2"/><br/>
+                  <t t-esc="billing_addr.address_city"/>, <t t-esc="billing_addr.address_state"/>, <t t-esc="billing_addr.address_country.name"/><br/>
+                  <t t-esc="billing_addr.address_zip"/>
+                </div>
+                <div>
+                  <a href="/shop/checkout"><span class="fa fa-arrow-right"/> Change Address</a>
+                </div>
+              </t>
+              <t>
+                  <h4 class="mt32">Ship To:</h4>
+                  <div>
+                    <i class="fa fa-map-marker"></i> <t t-esc="shipping_addr.address1"/>, <t t-esc="shipping_addr.address2"/><br/>
+                    <t t-esc="shipping_addr.address_city"/>, <t t-esc="shipping_addr.address_state"/>, <t t-esc="shipping_addr.address_country.name"/><br/>
+                    <t t-esc="shipping_addr.address_zip"/>
+                  </div>
+                  <div class="mb32">
+                    <a href="/shop/checkout"><span class="fa fa-arrow-right"/> Change Address</a>
+                  </div>
+              </t>
+          </div>
+          
+        <div>
+        </div>
+      </xpath>
+      
+    </template>
+    
+    <template id="assets_frontend" inherit_id="website.assets_frontend" name="Card">
+      <xpath expr="." position="inside">
+        <script type="text/javascript">
+          $(function() {
+            
+            if(location.toString().indexOf('payment') !== -1)
+              $.get('/shop/cards', function(data) {
+                console.log(data);
+                $('#credit_cards_container').html(data);
+              });
+          });
+        </script>
+      </xpath>
+    </template>
+    
+    <template id="cards_list">
+      
+      <div class="row">
+              <div class="col-lg-8 col-sm-9">
+                
+                <h4>Please choose a card: <input type="button" class="btn btn-primary pull-right" value="Add new card" onclick="$('#credit_card_block').show(); clear_form(); location='#credit_card_block';"/></h4>
+                  
+                <t t-if="len(cards) == 0">
+                  <div class="alert alert-info" role="alert" style="clear: both; margin-top: 20px;">No Cards found.</div>
+                </t>  
+                  
+                <t t-foreach="cards" t-as="card">
+                  <div class="panel panel-default" style="clear: both; margin-top: 20px;">
+                    <div class="panel-body">
+                      <div class="row">
+                        <div class="col-sm-8">
+                          <div class="row">
+                            <span class="col-sm-5">Credit Card:</span>
+                            <span class="col-sm-7">xxxxxxxxxxxx<t t-esc="card.card_num_short"/></span>
+                            <span class="col-sm-5">Card Holder's Name:</span>
+                            <span class="col-sm-7"><t t-esc="card.holder_name"/></span>
+                          </div>
+                          
+                          <a href="#credit_card_block" t-att-data-id="card.id" onclick="edit_card(this)">Edit</a> | <a href="" onclick="delete_card(this); return false;" t-att-data-id="card.id">Delete</a> <t t-if="card.is_default != '1'"> | <a href="" t-att-data-id="card.id" onclick="set_default(this); return false;">Make Default</a> </t>
+                          
+                        </div>
+                        <div class="col-sm-4">
+                          
+                          <t t-if="card.is_default == '1' and (selected_card == 0 or int(selected_card) == int(card.id))">
+                          <span style="float: right;">Default(will be used for this order)</span>
+                          </t>
+                          <t t-if="card.is_default == '1' and selected_card != 0 and int(selected_card) != int(card.id)">
+                          <span style="float: right;">Default(<a t-att-data-id="card.id" onclick="use_card(this); return false;" href="#">Use for this order</a>)</span>
+                          </t>
+
+
+                          <t t-if="card.is_default != '1' and int(selected_card) != int(card.id)">
+                          <a style="float: right;" t-att-data-id="card.id" onclick="use_card(this); return false;" href="#">Use for this order</a>
+                          </t>
+                          <t t-if="card.is_default != '1' and int(selected_card) == int(card.id)">
+                          <span style="float: right;">(will be used for this order)</span>
+                          </t>
+                          
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </t>
+                
+                
+                <div class="panel panel-default" style="display: none;" id="credit_card_block">
+                  <div class="panel-body">
+                      <h4>Enter card details below:</h4>
+                      
+                      <form class="form-horizontal">
+                        <div class="form-group">
+                          <label class="col-sm-4 control-label" style="text-align: left;">Card Type:</label>
+                          <div class="col-sm-8">
+                            <select name="card_type" class="form-control">
+                              <option value="">Please select..</option>
+                              <option value="visa">Visa</option>
+                              <option value="master_card">Master Card</option>
+                              <option value="amex">Amex</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label class="col-sm-4 control-label" style="text-align: left;">Name as it appears on card:</label>
+                          <div class="col-sm-8">
+                            <input type="text" class="form-control" name="name"/>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label class="col-sm-4 control-label" style="text-align: left;">Credit card number:</label>
+                          <div class="col-sm-8">
+                            <input type="text" class="form-control" name="card_number"/>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label class="col-sm-4 control-label" style="text-align: left;">Expiration date:</label>
+                          <div class="col-sm-4">
+                            <select name="month" class="form-control">
+                              <option value="">Month..</option>
+                              <t t-foreach="range(1, 13)" t-as="val">
+                                <option t-att-value="val"><t t-esc="val"/></option>
+                              </t>
+                            </select>
+                          </div>
+                          <div class="col-sm-4">
+                            <select name="year" class="form-control">
+                              <option value="">Year..</option>
+                              <t t-foreach="range(int(datetime.date.today().strftime('%Y')), int(datetime.date.today().strftime('%Y')) + 10)" t-as="val">
+                                <option t-att-value="val"><t t-esc="val"/></option>
+                              </t>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label class="col-sm-4 control-label" style="text-align: left;">CVV:</label>
+                          <div class="col-sm-4">
+                            <input type="password" class="form-control" name="cvv"/>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <div class="col-sm-offset-4 col-sm-8">
+                            <input type="hidden" name="id" value=""/>
+                            <button type="button" class="btn btn-primary" onclick="save_card_details()">Save</button>
+                            <button type="button" class="btn btn-primary" onclick="$('#credit_card_block').hide()">Cancel</button>
+                          </div>
+                        </div>
+                      </form>
+                      
+                  </div>
+                </div>
+                
+              </div>
+              
+              <script type="text/javascript">
+                function save_card_details() {
+                
+                  $('.error').remove();
+                
+                  $.ajax({
+                    url: '/shop/storecard',
+                    type: 'POST',
+                    data: $('#credit_card_block').find('form').serialize(),
+                    success: function(data) {
+                      
+                      var isJSON = true;
+                      try{
+                        
+                        errors = $.parseJSON(data);
+                      }catch (e) {
+                
+                        isJSON = false;
+                      }
+                      
+                      if(isJSON) {
+                        
+                        
+                        $.each(errors.errorforhandler, function(k, v) {
+                          
+                          $('[name="'+ k +'"]').after('<span class="error" style="color: red;">'+ v +'</span>');
+                        });
+                      }else {
+                        
+                        $('#credit_cards_container').html(data);
+                      }
+                    }
+                  });
+                
+                  return false;
+                }
+                
+                function delete_card(obj){
+                
+                  $.ajax({
+                    url: '/shop/card/delete',
+                    type: 'POST',
+                    data: 'id='+$(obj).attr('data-id'),
+                    success: function(data) {
+                      $('#credit_cards_container').html(data);
+                    }
+                  });
+                
+                  return false;
+                }
+                
+                function use_card(obj) {
+                
+                  $.ajax({
+                    url: '/shop/card/selected',
+                    type: 'POST',
+                    data: 'id='+$(obj).attr('data-id'),
+                    success: function(data) {
+                      $('#credit_cards_container').html(data);
+                    }
+                  });
+                }
+                
+                function set_default(obj) {
+                
+                  $.ajax({
+                    url: '/shop/card/default',
+                    type: 'POST',
+                    data: 'id='+$(obj).attr('data-id'),
+                    success: function(data) {
+                      $('#credit_cards_container').html(data);
+                    }
+                  });
+                }
+                
+                function edit_card(obj) {
+                  
+                  $('#credit_card_block').show();
+                  $.ajax({
+                    url: '/shop/card/detail',
+                    type: 'POST',
+                    data: 'id='+$(obj).attr('data-id'),
+                    success: function(data) {
+                      data = $.parseJSON(data);
+                      
+                      $('select[name="card_type"]').val(data.card_type);
+                      $('input[name="id"]').val($(obj).attr('data-id'));
+                      $('input[name="name"]').val(data.holder_name);
+                      $('input[name="card_number"]').attr('placeholder', 'xxxxxxxxxxxx'+data.card_num_short);
+                    }
+                  });
+                }
+                
+                function clear_form() {
+                  
+                  $('input[name="id"]').val('');
+                  $('input[name="name"]').val('');
+                  $('input[name="card_number"]').attr('placeholder', '');
+                }
+              </script>
+            </div>
+      
+    </template>
+    
+  </data>
+</openerp>

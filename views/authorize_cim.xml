@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+
+        <template id="authorize_cim_acquirer_button">
+            
+            <div id="credit_cards_container"></div>
+          
+            <form t-if="acquirer" t-att-action="tx_url" method="post" target="_self" onsubmit="return cim_validate_card()">
+                <input type='hidden' name='x_amount' t-att-value='tx_values["x_amount"] or "0.0"'/>
+                <!--Order Information -->
+                <input type='hidden' name='x_invoice_num' t-att-value='tx_values["reference"]'/>
+                <input type='hidden' name='x_currency_code' t-att-value='tx_values["x_currency_code"]'/>
+                <!-- Billing Information-->
+                <input type='hidden' name='x_first_name' t-att-value="tx_values['first_name']"/>
+                <input type='hidden' name='x_last_name' t-att-value="tx_values['last_name']"/>
+                <input type='hidden' name='x_address' t-att-value="tx_values['address']"/>
+                <input type='hidden' name='x_city' t-att-value="tx_values['city']"/>
+                <input type='hidden' name='x_zip' t-att-value="tx_values['zip']"/>
+                <input type='hidden' name='x_country' t-att-value="tx_values['country']"/>
+                <input type='hidden' name='x_phone' t-att-value='tx_values["phone"]'/>
+                <input type='hidden' name='x_email' t-att-value="tx_values['email']"/>
+                <input type='hidden' name='x_state' t-att-value="tx_values['state']"/>
+                <!-- Submit-->
+                <button type="submit" width="100px" t-att-class="submit_class">
+                    <img t-if="not submit_txt" src="/payment_authorize_cim/static/src/img/authorize_icon.png"/>
+                    <span t-if="submit_txt"><t t-esc="submit_txt"/> <span class="fa fa-long-arrow-right"/></span>
+                </button>
+            </form>
+            
+            <script type="text/javascript">
+              function cim_validate_card() {
+                
+                var error = false;
+              
+                $.ajax({
+                  url: '/cim_payment/validate',
+                  type: 'POST',
+                  dataType: 'JSON',
+                  async: false,
+                  success: function(data) {
+                    
+                    if(data.error) {
+                      $('.alert').remove();
+                      $('#credit_cards_container').find('h4').after('<div class="alert alert-danger" style="clear:both; margin-top:22px;">'+ data.error +'</div>');
+                      error = true;
+                    }
+                  }
+                });
+                
+                if(error)
+                  return false;
+                else
+                  return true;
+              }
+            </script>
+            
+        </template>
+
+    </data>
+</openerp>

@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_payment_authorize_checkout_address,payment_authorize_checkout_address,model_payment_authorize_checkout_address,,1,1,1,1
+access_payment_authorize_credit_card_info,access_payment_authorize_credit_card_info,model_payment_authorize_credit_card_info,,1,1,1,1
